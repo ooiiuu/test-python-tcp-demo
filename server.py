@@ -30,6 +30,7 @@ def handle(client):
             nickname = nicknames[index]
             nicknames.remove(nickname)
             broadcast(f'{nickname} 离开了聊天室！'.encode('utf-8'))
+            print(f'{nickname} 离开了聊天室！')  # 用户离开，客户端会显示消息
             break
 
 
