@@ -22,14 +22,36 @@ def handle(client):
     while True:
         try:
             message = client.recv(1024)
-            broadcast(message)
-        except:
+            msg = message.decode('utf-8')
+
+            if msg.split(': ', 1)[1].startswith('/msg'):
+                params = msg.split(': ', 1)[1]  # 分成两部分：{nickname},{input("")}
+                params = params.split(' ', 2)  # 分成三部分：/msg, username, message
+                if len(params) < 3:
+                    continue  # 如果命令格式不正确就继续循环
+                username = params[1]
+                msg_to_send = params[2]
+
+                sender_nickname = nicknames[clients.index(client)]
+
+                # 找到目标用户名，仅向该用户发送私密消息
+                if username in nicknames:
+                    index = nicknames.index(username)
+                    client_to_send = clients[index]
+                    client_to_send.send(f"来自 {sender_nickname} 的私聊消息: {msg_to_send}".encode('utf-8'))
+                else:
+                    client.send(f"未找到名为 {username} 的用户，请检查输入。".encode('utf-8'))
+
+            else:
+                broadcast(msg.encode("utf-8"))
+
+        except Exception as error:
+            print(f"发生错误: {error}")
             index = clients.index(client)
             clients.remove(client)
             client.close()
             nickname = nicknames[index]
             nicknames.remove(nickname)
-            broadcast(f'{nickname} 离开了聊天室！'.encode('utf-8'))
             print(f'{nickname} 离开了聊天室！')  # 用户离开，客户端会显示消息
             break
 
