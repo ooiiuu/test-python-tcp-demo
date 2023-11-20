@@ -1,5 +1,6 @@
 import socket
 import threading
+from datetime import datetime
 
 # 服务器端配置
 host = '127.0.0.1'
@@ -38,12 +39,16 @@ def handle(client):
                 if username in nicknames:
                     index = nicknames.index(username)
                     client_to_send = clients[index]
-                    client_to_send.send(f"A private message from {sender_nickname}: {msg_to_send}".encode('utf-8'))
+                    now_time = str(datetime.utcnow())
+                    client_to_send.send(f"[{now_time}]A private message from {sender_nickname}: {msg_to_send}"
+                                        .encode('utf-8'))
+                    client.send(f"[{now_time}]You make a private message to {username}:{msg_to_send}".encode('utf-8'))
                 else:
                     client.send(f"The user named {username} was not found, please check the input.".encode('utf-8'))
 
             else:
-                broadcast(msg.encode("utf-8"))
+                now_time = str(datetime.utcnow())
+                broadcast(f"[{now_time}]{msg}".encode("utf-8"))
 
         except Exception as error:
             print(f"error: {error}")
@@ -52,14 +57,16 @@ def handle(client):
             client.close()
             nickname = nicknames[index]
             nicknames.remove(nickname)
-            print(f'{nickname} leaves the chat!')  # 用户离开，客户端会显示消息
+            now_time = str(datetime.utcnow())
+            print(f'[{now_time}]{nickname} leaves the chat!')  # 用户离开，客户端会显示消息
             break
 
 
 def receive():
     while True:
         client, address = server.accept()
-        print(f"Successful connection from {str(address)}!")
+        now_time = str(datetime.utcnow())
+        print(f"[{now_time}]Successful connection from {str(address)}!")
 
         client.send('NICK'.encode('utf-8'))
         nickname = client.recv(1024).decode('utf-8')
@@ -73,13 +80,13 @@ def receive():
         nicknames.append(nickname)
         clients.append(client)
 
-        print(f"A user with the nickname {nickname} has joined the chat!")
-        broadcast(f"{nickname} joins the chat!".encode('utf-8'))
+        print(f"[{now_time}]A user with the nickname {nickname} has joined the chat!")
+        broadcast(f"[{now_time}]{nickname} joins the chat!".encode('utf-8'))
         client.send('Connect to chat rooms!'.encode('utf-8'))
 
         thread = threading.Thread(target=handle, args=(client,))
         thread.start()
 
 
-print("The server starts.")
+print(f"[{str(datetime.utcnow())}]The server starts.")
 receive()
