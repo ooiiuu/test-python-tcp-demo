@@ -5,7 +5,7 @@ import threading
 host = '127.0.0.1'
 port = 12345
 
-nickname = input("请输入您的昵称：")
+nickname = input("please input your name: ")
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((host, port))
@@ -20,7 +20,7 @@ def receive():
             else:
                 print(message)
         except:
-            print("连接中断!")
+            print("The connection is interrupted!")
             client.close()
             break
 

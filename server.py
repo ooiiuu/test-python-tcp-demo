@@ -38,41 +38,48 @@ def handle(client):
                 if username in nicknames:
                     index = nicknames.index(username)
                     client_to_send = clients[index]
-                    client_to_send.send(f"来自 {sender_nickname} 的私聊消息: {msg_to_send}".encode('utf-8'))
+                    client_to_send.send(f"A private message from {sender_nickname}: {msg_to_send}".encode('utf-8'))
                 else:
-                    client.send(f"未找到名为 {username} 的用户，请检查输入。".encode('utf-8'))
+                    client.send(f"The user named {username} was not found, please check the input.".encode('utf-8'))
 
             else:
                 broadcast(msg.encode("utf-8"))
 
         except Exception as error:
-            print(f"发生错误: {error}")
+            print(f"error: {error}")
             index = clients.index(client)
             clients.remove(client)
             client.close()
             nickname = nicknames[index]
             nicknames.remove(nickname)
-            print(f'{nickname} 离开了聊天室！')  # 用户离开，客户端会显示消息
+            print(f'{nickname} leaves the chat!')  # 用户离开，客户端会显示消息
             break
 
 
 def receive():
     while True:
         client, address = server.accept()
-        print(f"连接成功,来自 {str(address)}!")
+        print(f"Successful connection from {str(address)}!")
 
         client.send('NICK'.encode('utf-8'))
         nickname = client.recv(1024).decode('utf-8')
+
+        # 如果已经存在相同的用户名
+        if nickname in nicknames:
+            client.send("Username already taken! Disconnecting...".encode('utf-8'))
+            client.close()
+            continue
+
         nicknames.append(nickname)
         clients.append(client)
 
-        print(f"昵称为 {nickname} 的用户加入了聊天室!")
-        broadcast(f"{nickname} 加入了聊天室!".encode('utf-8'))
-        client.send('连接到聊天室!'.encode('utf-8'))
+        print(f"A user with the nickname {nickname} has joined the chat!")
+        broadcast(f"{nickname} joins the chat!".encode('utf-8'))
+        client.send('Connect to chat rooms!'.encode('utf-8'))
 
         thread = threading.Thread(target=handle, args=(client,))
         thread.start()
 
 
-print("服务器启动")
+print("The server starts.")
 receive()
